@@ -1,0 +1,1 @@
+CUDA_VISIBLE_DEVICES=1 python tools/demo.py configs/elephant/cityperson/cascade_hrnet.py ./models_pretrained/epoch_5.pth.stu demo/ result_demo/ 
