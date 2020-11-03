@@ -100,7 +100,7 @@ def _inference_generator(model, imgs, img_transform, device):
 
 
 # TODO: merge this method with the one in BaseDetector
-def show_result(img, result, class_names, score_thr=0.3, out_file=None):
+def show_result(img, result, class_names, score_thr=0.3, out_file=None, save_bbox=True, predict_model=None):
     """Visualize the detection results on the image.
 
     Args:
@@ -118,6 +118,7 @@ def show_result(img, result, class_names, score_thr=0.3, out_file=None):
         bbox_result, segm_result = result
     else:
         bbox_result, segm_result = result, None
+    # Bounding boxes (with scores), shaped (n, 4) or (n, 5). If score is lower than the threshold, then won't be visualized.
     bboxes = np.vstack(bbox_result)
     # draw segmentation masks
     if segm_result is not None:
@@ -138,6 +139,8 @@ def show_result(img, result, class_names, score_thr=0.3, out_file=None):
         bboxes,
         labels,
         class_names=class_names,
-        score_thr=score_thr,
+        score_thr=score_thr,  # [TEST] default: score_thr
         show=out_file is None,
-        out_file=out_file)
+        out_file=out_file,
+        save_bbox=save_bbox,
+        predict_model=predict_model)
