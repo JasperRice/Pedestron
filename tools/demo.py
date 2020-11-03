@@ -11,7 +11,7 @@ import time
 import mmcv
 import numpy as np
 import torch
-from cv2 import cv2
+import cv2
 from mmdet.apis import inference_detector, init_detector, show_result
 from sklearn.linear_model import LinearRegression
 
@@ -38,7 +38,7 @@ def parse_args():
     return args
 
 
-def mock_detector(model, image_name, output_dir, save_bbox=True, predict_model=None):
+def mock_detector(model, image_name, output_dir, save_bbox=False, predict_model=None):
     image = cv2.imread(image_name)
     results = inference_detector(model, image)
     basename = os.path.basename(image_name).split('.')[0]
@@ -54,7 +54,7 @@ def create_base_dir(dest):
         os.makedirs(basedir)
 
 
-def run_detector_on_dataset(image_type='png', save_bbox=True, predict_model=None):
+def run_detector_on_dataset(image_type='png', save_bbox=False, predict_model=None):
     args = parse_args()
     input_dir = args.input_img_dir
     output_dir = args.output_dir
@@ -76,14 +76,13 @@ def run_detector_on_dataset(image_type='png', save_bbox=True, predict_model=None
 
 if __name__ == '__main__':
     model = LinearRegression()
-    original_height_pixel = 3840
+    original_height_pixel = 3968
     with open('/home/sifan/Documents/Pedestron/height-distance.txt') as file:
-        lines = file.readlines(file)
-        X = np.array(list(map(float, [line[0] for line in lines]))).reshape((-1, 1))
+        lines = file.readlines()
+        X = np.array(list(map(float, [line.split()[0] for line in lines]))).reshape(-1, 1)
         X = original_height_pixel / X
-        Y = np.array(list(map(float, [line[1] for line in lines])))
+        Y = np.array(list(map(float, [line.split()[1] for line in lines])))
         model.fit(X, Y)
 
-    model=None
     run_detector_on_dataset(
         image_type='jpg', save_bbox=False, predict_model=model)
