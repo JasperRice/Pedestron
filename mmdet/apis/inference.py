@@ -5,7 +5,6 @@ import numpy as np
 import pycocotools.mask as maskUtils
 import torch
 from mmcv.runner import load_checkpoint
-
 from mmdet.core import get_classes
 from mmdet.datasets import to_tensor
 from mmdet.datasets.transforms import ImageTransform
@@ -100,7 +99,7 @@ def _inference_generator(model, imgs, img_transform, device):
 
 
 # TODO: merge this method with the one in BaseDetector
-def show_result(img, result, class_names, score_thr=0.3, out_file=None, save_bbox=True, predict_model=None):
+def show_result(img, result, class_names, score_thr=0.3, out_file=None, save_bbox=False, predict_model=None, poly=None):
     """Visualize the detection results on the image.
 
     Args:
@@ -143,4 +142,5 @@ def show_result(img, result, class_names, score_thr=0.3, out_file=None, save_bbo
         show=out_file is None,
         out_file=out_file,
         save_bbox=save_bbox,
-        predict_model=predict_model)
+        predict_model=predict_model,
+        poly=poly)

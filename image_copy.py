@@ -80,7 +80,8 @@ def imshow_det_bboxes(img,
                       wait_time=0,
                       out_file=None,
                       save_bbox=False,
-                      predict_model=None):
+                      predict_model=None,
+                      poly=None):
     """Draw bboxes and class labels (with scores) on an image.
 
     Args:
@@ -133,6 +134,8 @@ def imshow_det_bboxes(img,
             human_height = max(bbox_int[2] - bbox_int[0], bbox_int[3] - bbox_int[1])
             print(height, human_height)
             inverse_ratio = np.array(height / human_height).reshape(1, -1)
+            if poly != None:
+                inverse_ratio = poly.fit_transform(inverse_ratio)
             predict_distance = predict_model.predict(inverse_ratio)[0]
             cv2.putText(img, str(predict_distance)+' cm', (bbox_int[0] - 2, bbox_int[1] - 2),
                     cv2.FONT_HERSHEY_COMPLEX, font_scale, color=(255, 0, 0))
