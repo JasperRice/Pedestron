@@ -126,8 +126,8 @@ def imshow_det_bboxes(img,
             label] if class_names is not None else 'cls {}'.format(label)
         if len(bbox) > 4:
             label_text += '|{:.02f}'.format(bbox[-1])
-        cv2.putText(img, label_text, (bbox_int[0], bbox_int[1] - 2),
-                    cv2.FONT_HERSHEY_COMPLEX, font_scale, text_color)
+        cv2.putText(img, label_text, (bbox_int[0], bbox_int[1] - 90),
+                    cv2.FONT_HERSHEY_COMPLEX, 3, text_color) # Default: font_scale
 
         if predict_model != None:
             height, width, _ = img.shape
@@ -137,8 +137,8 @@ def imshow_det_bboxes(img,
             if poly != None:
                 inverse_ratio = poly.fit_transform(inverse_ratio)
             predict_distance = predict_model.predict(inverse_ratio)[0]
-            cv2.putText(img, str(predict_distance)+' cm', (bbox_int[0] - 2, bbox_int[1] - 2),
-                    cv2.FONT_HERSHEY_COMPLEX, font_scale, color=(255, 0, 0))
+            cv2.putText(img, str(predict_distance)+' cm', (bbox_int[0] - 60, bbox_int[1] - 2),
+                    cv2.FONT_HERSHEY_COMPLEX, 3, color=(255, 0, 0))
 
     if show:
         imshow(img, win_name, wait_time)
