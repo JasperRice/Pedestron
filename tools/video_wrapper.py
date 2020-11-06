@@ -31,14 +31,14 @@ def main():
     c = 0
     while rval:
         c += 1
-        rval, frame = vc.read()
-        if rval:
-            frame = np.rot90(frame, -1)
-            cv2.imwrite(
-                '/home/sifan/Documents/Pedestron/demo/video/office_robot_follow_02/office_robot_follow_02_{}.jpg'.format(c), frame)
-            cv2.waitKey(1)
-        else:
-            break
+            rval, frame = vc.read()
+            if rval:
+                frame = np.rot90(frame, -1)
+                cv2.imwrite(
+                    '/home/sifan/Documents/Pedestron/demo/video/office_robot_follow_02/office_robot_follow_02_{}.jpg'.format(c), frame)
+                cv2.waitKey(1)
+            else:
+                break
     vc.release()
 
 
