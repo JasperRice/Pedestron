@@ -24,23 +24,29 @@ class VideoReader(object):
         return img
 
 
-def main():
-    vc = cv2.VideoCapture(
-        '/home/sifan/Documents/Pedestron/demo/video/office_robot_follow_02.mp4')
-    rval = vc.isOpened()
+def main(rotate=-90, downsample=4):
+    video = cv2.VideoCapture(
+        '/data/sifan/videos/original/follow/webcam.mp4')
+    rval, frame = video.read()
+    if rval:
+        height, width, _ = frame.shape
+        frameSize = (width//downsample, height//downsample)
     c = 0
     while rval:
         c += 1
-            rval, frame = vc.read()
+        if c % 3 == 1:
             if rval:
-                frame = np.rot90(frame, -1)
+                frame = cv2.resize(frame, frameSize)
+                frame = np.rot90(frame, rotate//90)
                 cv2.imwrite(
-                    '/home/sifan/Documents/Pedestron/demo/video/office_robot_follow_02/office_robot_follow_02_{}.jpg'.format(c), frame)
+                    '/data/sifan/images/results/follow/webcam/{}.jpg'.format(c), frame)
                 cv2.waitKey(1)
             else:
                 break
-    vc.release()
+        else:
+            rval, frame = video.read()
+    video.release()
 
 
 if __name__ == "__main__":
-    main()
+    main(rotate=-90, downsample=4)

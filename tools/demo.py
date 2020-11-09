@@ -4,9 +4,9 @@ import json
 import os
 import os.path as osp
 import sys
+import time
 
 sys.path.insert(0, osp.join(osp.dirname(osp.abspath(__file__)), '../'))
-import time
 
 import cv2
 import mmcv
@@ -15,8 +15,6 @@ import torch
 from mmdet.apis import inference_detector, init_detector, show_result
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures
-
-sys.path.insert(0, osp.join(osp.dirname(osp.abspath(__file__)), '../'))
 
 
 def parse_args():
@@ -35,6 +33,7 @@ def parse_args():
     parser.add_argument('--local_rank', type=int, default=0)
     parser.add_argument('--mean_teacher', action='store_true',
                         help='test the mean teacher pth')
+    parser.add_argument('--image_type', type=str, default='jpg')
     args = parser.parse_args()
     return args
 
@@ -55,14 +54,14 @@ def create_base_dir(dest):
         os.makedirs(basedir)
 
 
-def run_detector_on_dataset(image_type='png', save_bbox=False, predict_model=None, poly=None):
+def run_detector_on_dataset(save_bbox=False, predict_model=None, poly=None):
     args = parse_args()
     input_dir = args.input_img_dir
     output_dir = args.output_dir
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
     print(input_dir)
-    eval_imgs = glob.glob(os.path.join(input_dir, '*.'+image_type))
+    eval_imgs = glob.glob(os.path.join(input_dir, '*.'+args.image_type))
     print(eval_imgs)
 
     model = init_detector(
@@ -76,19 +75,18 @@ def run_detector_on_dataset(image_type='png', save_bbox=False, predict_model=Non
 
 
 if __name__ == '__main__':
-    image_type = 'jpg'
     model = LinearRegression()
-    # poly = PolynomialFeatures(degree=2)
     poly = None
-    original_height_pixel = 3968
-    with open('/home/sifan/Documents/Pedestron/height-distance.txt') as file:
+    # poly = PolynomialFeatures(degree=2)
+    original_height_pixel = 1080
+    with open('/home/sifan/Documents/Pedestron/height-distance-webcam.txt') as file:
         lines = file.readlines()
-        X = np.array(list(map(float, [line.split()[0] for line in lines]))).reshape(-1, 1)
+        X = np.array(list(map(float, [line.split()[0]
+                                      for line in lines]))).reshape(-1, 1)
         X = original_height_pixel / X
         if poly != None:
             X = poly.fit_transform(X)
         Y = np.array(list(map(float, [line.split()[1] for line in lines])))
         model.fit(X, Y)
 
-    run_detector_on_dataset(
-        image_type=image_type, save_bbox=False, predict_model=model, poly=poly)
+    run_detector_on_dataset(save_bbox=False, predict_model=model, poly=poly)
