@@ -36,12 +36,12 @@ def main(rotate=-90, downsample=4):
         c += 1
         if c % 3 == 1:
             if rval:
-                frame = cv2.resize(frame, frameSize)
-                frame = np.rot90(frame, rotate//90)
-                cv2.imwrite(
-                    '/data/sifan/images/results/follow/webcam/{}.jpg'.format(c), frame)
-                cv2.waitKey(1)
-            else:
+            frame = cv2.resize(frame, frameSize)
+            frame = np.rot90(frame, rotate//90)
+            cv2.imwrite(
+                '/data/sifan/images/results/follow/webcam/{}.jpg'.format(c), frame)
+            cv2.waitKey(1)
+        else:
                 break
         else:
             rval, frame = video.read()
