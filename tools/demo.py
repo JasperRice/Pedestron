@@ -34,6 +34,7 @@ def parse_args():
     parser.add_argument('--mean_teacher', action='store_true',
                         help='test the mean teacher pth')
     parser.add_argument('--image_type', type=str, default='jpg')
+    parser.add_argument('--save_bbox', type=bool, default=False)
     args = parser.parse_args()
     return args
 
