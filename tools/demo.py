@@ -55,7 +55,7 @@ def create_base_dir(dest):
         os.makedirs(basedir)
 
 
-def run_detector_on_dataset(save_bbox=False, predict_model=None, poly=None):
+def run_detector_on_dataset(predict_model=None, poly=None):
     args = parse_args()
     input_dir = args.input_img_dir
     output_dir = args.output_dir
@@ -63,7 +63,7 @@ def run_detector_on_dataset(save_bbox=False, predict_model=None, poly=None):
         os.makedirs(output_dir)
     print(input_dir)
     eval_imgs = glob.glob(os.path.join(input_dir, '*.'+args.image_type))
-    print(eval_imgs)
+    # print(eval_imgs)
 
     model = init_detector(
         args.config, args.checkpoint, device=torch.device('cuda:0'))
@@ -71,7 +71,7 @@ def run_detector_on_dataset(save_bbox=False, predict_model=None, poly=None):
     prog_bar = mmcv.ProgressBar(len(eval_imgs))
     for im in eval_imgs:
         detections = mock_detector(
-            model, im, output_dir, save_bbox=save_bbox, predict_model=predict_model, poly=poly)
+            model, im, output_dir, save_bbox=args.save_bbox, predict_model=predict_model, poly=poly)
         prog_bar.update()
 
 
@@ -80,14 +80,13 @@ if __name__ == '__main__':
     poly = None
     # poly = PolynomialFeatures(degree=2)
     original_height_pixel = 1080
-    with open('/home/sifan/Documents/Pedestron/height-distance-webcam.txt') as file:
-        lines = file.readlines()
-        X = np.array(list(map(float, [line.split()[0]
-                                      for line in lines]))).reshape(-1, 1)
-        X = original_height_pixel / X
-        if poly != None:
-            X = poly.fit_transform(X)
-        Y = np.array(list(map(float, [line.split()[1] for line in lines])))
-        model.fit(X, Y)
-
-    run_detector_on_dataset(save_bbox=False, predict_model=model, poly=poly)
+    # with open('height-distance-webcam.txt', 'r') as file:
+    #     lines = file.readlines()
+    #     X = np.array(list(map(float, [line.split()[0]
+    #                                   for line in lines]))).reshape(-1, 1)
+    #     X = original_height_pixel / X
+    #     if poly != None:
+    #         X = poly.fit_transform(X)
+    #     Y = np.array(list(map(float, [line.split()[1] for line in lines])))
+    #     model.fit(X, Y)
+    run_detector_on_dataset(predict_model=None, poly=None)
