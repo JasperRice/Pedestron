@@ -8,10 +8,10 @@ import time
 
 sys.path.insert(0, osp.join(osp.dirname(osp.abspath(__file__)), '../'))
 
-import cv2
 import mmcv
 import numpy as np
 import torch
+from cv2 import cv2
 from mmdet.apis import inference_detector, init_detector, show_result
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures
@@ -46,7 +46,7 @@ def mock_detector(model, image_name, output_dir, save_bbox=False, predict_model=
     result_name = basename + "_result.jpg"
     result_name = os.path.join(output_dir, result_name)
     show_result(image, results, model.CLASSES, score_thr=0.8,
-                out_file=result_name, save_bbox=save_bbox, predict_model=predict_model, poly=poly)
+                out_file=result_name, save_bbox=save_bbox, predict_model=predict_model, poly=poly)  # Default: score_thr=0.8
 
 
 def create_base_dir(dest):
@@ -75,18 +75,31 @@ def run_detector_on_dataset(predict_model=None, poly=None):
         prog_bar.update()
 
 
+def run_detector_on_webcam(predict_model=None, poly=None):
+    args = parse_args()
+    model = init_detector(
+        args.config, args.checkpoint, device=torch.device('cuda:0'))
+
+    cap = cv2.VideoCapture(0)
+    ret, frame = cap.read()
+    while ret:
+        results = inference_detector(model, frame)
+        show_result(frame, results, model.CLASSES, score_thr=0.8,
+                    out_file=None, save_bbox=args.save_bbox, predict_model=predict_model, poly=poly)  # Default: score_thr=0.8
+        ret, frame = cap.read()
+
+
 if __name__ == '__main__':
     model = LinearRegression()
     poly = None
-    # poly = PolynomialFeatures(degree=2)
     original_height_pixel = 1080
-    # with open('height-distance-webcam.txt', 'r') as file:
-    #     lines = file.readlines()
-    #     X = np.array(list(map(float, [line.split()[0]
-    #                                   for line in lines]))).reshape(-1, 1)
-    #     X = original_height_pixel / X
-    #     if poly != None:
-    #         X = poly.fit_transform(X)
-    #     Y = np.array(list(map(float, [line.split()[1] for line in lines])))
-    #     model.fit(X, Y)
-    run_detector_on_dataset(predict_model=None, poly=None)
+    with open('height-distance-webcam.txt', 'r') as file:
+        lines = file.readlines()
+        X = np.array(list(map(float, [line.split()[0]
+                                      for line in lines]))).reshape(-1, 1)
+        X = original_height_pixel / X
+        if poly != None:
+            X = poly.fit_transform(X)
+        Y = np.array(list(map(float, [line.split()[1] for line in lines])))
+        model.fit(X, Y)
+    run_detector_on_dataset(predict_model=model, poly=poly)
