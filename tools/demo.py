@@ -19,12 +19,15 @@ from sklearn.preprocessing import PolynomialFeatures
 
 def parse_args():
     parser = argparse.ArgumentParser(description='MMDet test detector')
+    parser.add_argument('mode', choices=['image', 'video', 'webcam'])
     parser.add_argument('config', help='test config file path')
     parser.add_argument('checkpoint', help='checkpoint file')
     parser.add_argument('input_img_dir', type=str,
                         help='the dir of input images')
     parser.add_argument('output_dir', type=str,
                         help='the dir for result images')
+    parser.add_argument('--video_path', type=str,
+                        help='the path for input video')
     parser.add_argument(
         '--launcher',
         choices=['none', 'pytorch', 'slurm', 'mpi'],
@@ -75,6 +78,21 @@ def run_detector_on_dataset(predict_model=None, poly=None):
         prog_bar.update()
 
 
+def run_detector_on_video(predict_model=None, poly=None):
+    args = parse_args()
+    model = init_detector(
+        args.config, args.checkpoint, device=torch.device('cuda:0'))
+
+    cap = cv2.VideoCapture(args.video_path)
+    ret, frame = cap.read()
+    while ret:
+        results = inference_detector(model, frame)
+        show_result(frame, results, model.CLASSES, score_thr=0.8,
+                    out_file=None, save_bbox=args.save_bbox, predict_model=predict_model, poly=poly)  # Default: score_thr=0.8
+        ret, frame = cap.read()
+    cap.release()
+    cv2.destroyAllWindows()
+
 def run_detector_on_webcam(predict_model=None, poly=None):
     args = parse_args()
     model = init_detector(
@@ -87,7 +105,8 @@ def run_detector_on_webcam(predict_model=None, poly=None):
         show_result(frame, results, model.CLASSES, score_thr=0.8,
                     out_file=None, save_bbox=args.save_bbox, predict_model=predict_model, poly=poly)  # Default: score_thr=0.8
         ret, frame = cap.read()
-
+    cap.release()
+    cv2.destroyAllWindows()
 
 if __name__ == '__main__':
     model = LinearRegression()
@@ -102,4 +121,6 @@ if __name__ == '__main__':
             X = poly.fit_transform(X)
         Y = np.array(list(map(float, [line.split()[1] for line in lines])))
         model.fit(X, Y)
-    run_detector_on_dataset(predict_model=model, poly=poly)
+
+    # run_detector_on_dataset(predict_model=model, poly=poly)
+    run_detector_on_video(predict_model=model, poly=poly)
