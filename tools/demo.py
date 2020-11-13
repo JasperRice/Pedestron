@@ -67,11 +67,14 @@ def run_detector_on_dataset(save_bbox=False, predict_model=None, poly=None):
     model = init_detector(
         args.config, args.checkpoint, device=torch.device('cuda:0'))
 
-    prog_bar = mmcv.ProgressBar(len(eval_imgs))
+    # prog_bar = mmcv.ProgressBar(len(eval_imgs), start=True)
+    start = time.time()
     for im in eval_imgs:
         detections = mock_detector(
             model, im, output_dir, save_bbox=save_bbox, predict_model=predict_model, poly=poly)
-        prog_bar.update()
+        # prog_bar.update()
+    end = time.time()
+    print("Total time: {:.3f} s".format(end-start))
 
 
 if __name__ == '__main__':
@@ -79,14 +82,14 @@ if __name__ == '__main__':
     poly = None
     # poly = PolynomialFeatures(degree=2)
     original_height_pixel = 1080
-    with open('/home/sifan/Documents/Pedestron/height-distance-webcam.txt') as file:
-        lines = file.readlines()
-        X = np.array(list(map(float, [line.split()[0]
-                                      for line in lines]))).reshape(-1, 1)
-        X = original_height_pixel / X
-        if poly != None:
-            X = poly.fit_transform(X)
-        Y = np.array(list(map(float, [line.split()[1] for line in lines])))
-        model.fit(X, Y)
+    # with open('/home/sifan/Documents/Pedestron/height-distance-webcam.txt') as file:
+    #     lines = file.readlines()
+    #     X = np.array(list(map(float, [line.split()[0]
+    #                                   for line in lines]))).reshape(-1, 1)
+    #     X = original_height_pixel / X
+    #     if poly != None:
+    #         X = poly.fit_transform(X)
+    #     Y = np.array(list(map(float, [line.split()[1] for line in lines])))
+    #     model.fit(X, Y)
 
-    run_detector_on_dataset(save_bbox=False, predict_model=model, poly=poly)
+    run_detector_on_dataset(save_bbox=False, predict_model=None, poly=None)
