@@ -1,5 +1,5 @@
-# Usage: sh shell/demo.sh
-CUDA_VISIBLE_DEVICES=2 \
+# Usage: sh shell/follow_webcam_get_height_vs_distance.sh
+CUDA_VISIBLE_DEVICES=6 \
     python tools/demo.py \
     configs/elephant/cityperson/cascade_hrnet.py \
     /data/sifan/model-zoo/pedestron/cascade_mask_rcnn_citypersons_hrnet_epoch_5.pth.stu \
