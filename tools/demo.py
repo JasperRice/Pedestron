@@ -71,8 +71,7 @@ def run_detector_on_dataset(predict_model=None, poly=None):
     model = init_detector(
         args.config, args.checkpoint, device=torch.device('cuda:0'))
 
-    # prog_bar = mmcv.ProgressBar(len(eval_imgs), start=True)
-    start = time.time()
+    prog_bar = mmcv.ProgressBar(len(eval_imgs))
     for im in eval_imgs:
         detections = mock_detector(
             model, im, output_dir, save_bbox=args.save_bbox, predict_model=predict_model, poly=poly)
