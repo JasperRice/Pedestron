@@ -28,9 +28,10 @@ class Receiver(object):
 
 
 class Tcp_Receiver(object):
-    def __init__(self, ip, port, count):
+    def __init__(self, ip, port, count, record_time=False):
         self.address = (ip, port)
         self.count = count
+        self.if_record_times = record_time
 
     def __iter__(self):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -47,9 +48,10 @@ class Tcp_Receiver(object):
         return self
 
     def __next__(self):
-        self.start_time_length = Tcp_Receiver.recv_all(self.conn, 20)
-        self.start_time_string_data = float(self.conn.recv(
-            int(str(self.start_time_length, encoding="utf-8"))))
+        if self.if_record_times:
+            self.start_time_length = Tcp_Receiver.recv_all(self.conn, 20)
+            self.start_time_string_data = float(self.conn.recv(
+                int(str(self.start_time_length, encoding="utf-8"))))
         
         self.length = Tcp_Receiver.recv_all(self.conn, self.count)
         self.string_data = Tcp_Receiver.recv_all(self.conn, int(self.length))
@@ -82,8 +84,13 @@ class Tcp_Receiver(object):
 
 if __name__ == "__main__":
     # Test tcp_receiver
-    tcp_receiver = Tcp_Receiver('192.168.8.142', 8020, 16)
-    for image in tcp_receiver:
+    # receiver = Tcp_Receiver('192.168.8.142', 8020, 16)
+
+    # Test receiver
+    receiver = Receiver(0)
+    
+    for image in receiver:
         cv.imshow('SERVER', image)
         cv.waitKey(1)
     cv.destroyAllWindows()
+
