@@ -16,6 +16,8 @@ from mmdet.apis import inference_detector, init_detector, show_result
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures
 
+from webcam_wrapper import Tcp_Receiver
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description='MMDet test detector')
@@ -93,7 +95,21 @@ def run_detector_on_video(predict_model=None, poly=None):
     cap.release()
     cv2.destroyAllWindows()
 
+
 def run_detector_on_webcam(predict_model=None, poly=None):
+    args = parse_args()
+    model = init_detector(
+        args.config, args.checkpoint, device=torch.device('cuda:0'))
+
+    webcam_recevier = Tcp_Receiver('192.168.8.142', 8020, 16)
+    for frame in webcam_recevier:
+        results = inference_detector(model, frame)
+        show_result(frame, results, model.CLASSES, score_thr=0.8,
+                    out_file=None, save_bbox=args.save_bbox, predict_model=predict_model, poly=poly)  # Default: score_thr=0.8
+    cv2.destroyAllWindows()
+
+
+def run_detector_on_tcp_webcam(predict_model=None, poly=None):
     args = parse_args()
     model = init_detector(
         args.config, args.checkpoint, device=torch.device('cuda:0'))
@@ -107,6 +123,7 @@ def run_detector_on_webcam(predict_model=None, poly=None):
         ret, frame = cap.read()
     cap.release()
     cv2.destroyAllWindows()
+
 
 if __name__ == '__main__':
     model = LinearRegression()
