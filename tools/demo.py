@@ -21,7 +21,6 @@ from webcam_wrapper import Tcp_Receiver
 
 def parse_args():
     parser = argparse.ArgumentParser(description='MMDet test detector')
-    parser.add_argument('mode', choices=['image', 'video', 'webcam'])
     parser.add_argument('config', help='test config file path')
     parser.add_argument('checkpoint', help='checkpoint file')
     parser.add_argument('input_img_dir', type=str,
@@ -139,5 +138,5 @@ if __name__ == '__main__':
         Y = np.array(list(map(float, [line.split()[1] for line in lines])))
         model.fit(X, Y)
 
-    # run_detector_on_dataset(predict_model=model, poly=poly)
-    run_detector_on_video(predict_model=model, poly=poly)
+    run_detector_on_dataset(predict_model=model, poly=poly)
+    # run_detector_on_video(predict_model=model, poly=poly)
