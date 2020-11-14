@@ -66,9 +66,12 @@ def simple_visualization_and_sender(image, results, class_names, score_thr=0.9, 
         scores = bboxes[:, -1]
         inds = scores > score_thr
         bboxes = bboxes[inds, :]
+        original_labels = labels.copy()
         labels = labels[inds]
-    ind_with_max_score = np.argmax(scores)
-
+    if len(labels) > 0:
+        ind_with_max_score = np.argmax(scores)
+        label_with_max_score = original_labels[ind_with_max_score]
+    
     bbox_color = (0, 255, 0)
 
     x = y = z = ""
@@ -101,13 +104,17 @@ def simple_visualization_and_sender(image, results, class_names, score_thr=0.9, 
             cv2.putText(image, 'z - {:d} cm'.format(z_deviation), (bbox_int[2], bbox_int[1]+120),
                         cv2.FONT_HERSHEY_SIMPLEX, font_scale*height, (147, 20, 255), 2)
 
-            if i == ind_with_max_score:
+            if label == label_with_max_score:
                 x, y, z = str(x_deviation), str(y_deviation), str(z_deviation)
 
-        deviation = ' '.join([x, y, z])
-        socket_.conn.send(bytes(deviation, encoding='utf-8'))
-
         cv2.rectangle(image, left_top, right_bottom, bbox_color, thickness=1)
+
+    deviation = '|'.join([x, y, z])
+    try:
+        socket_.conn.send(bytes(deviation, encoding='utf-8'))
+    except:
+        pass
+
     return image
 
 
@@ -208,12 +215,7 @@ if __name__ == '__main__':
         Y = np.array(list(map(float, [line.split()[1] for line in lines])))
         model.fit(X, Y)
 
-<<<<<<< HEAD
     # run_detector_on_dataset(predict_model=model, poly=poly)
     # run_detector_on_video(predict_model=model, poly=poly)
     # run_detector_on_webcam(predict_model=model, poly=poly)
     run_detector_on_tcp_webcam(predict_model=model, poly=poly)
-=======
-    run_detector_on_dataset(predict_model=model, poly=poly)
-    # run_detector_on_video(predict_model=model, poly=poly)
->>>>>>> 4246f9be853a5a41240fa27435a37598cfd79b1e
