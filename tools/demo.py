@@ -45,9 +45,9 @@ def parse_args():
     return args
 
 
-def simple_visualization(image, results, class_names, score_thr=0.9, model=None, poly=None, real_human_height=180, font_scale=7e-4):
+def simple_visualization_and_sender(image, results, class_names, score_thr=0.9, model=None, poly=None, real_human_height=180, font_scale=7e-4, socket_=None):
     assert isinstance(class_names, (tuple, list))
-    
+
     if isinstance(results, tuple):
         bbox_result, segm_result = results
     else:
@@ -67,9 +67,11 @@ def simple_visualization(image, results, class_names, score_thr=0.9, model=None,
         inds = scores > score_thr
         bboxes = bboxes[inds, :]
         labels = labels[inds]
-    ind_with_max_score = scores.index(max(scores))
+    ind_with_max_score = np.argmax(scores)
 
     bbox_color = (0, 255, 0)
+
+    x = y = z = ""
 
     for i, (bbox, label) in enumerate(zip(bboxes, labels)):
         height, width, _ = image.shape
@@ -87,22 +89,25 @@ def simple_visualization(image, results, class_names, score_thr=0.9, model=None,
                 inverse_ratio = poly.fit_transform(inverse_ratio)
             predict_distance = model.predict(inverse_ratio)[0]
 
-            x_deviation = int(real_distance_pixel*(width-bbox_int[0]-bbox_int[2])/2)
-            y_deviation = int(real_distance_pixel*(height-bbox_int[1]-bbox_int[3])/2)
+            x_deviation = int(real_distance_pixel *
+                              (width-bbox_int[0]-bbox_int[2])/2)
+            y_deviation = int(real_distance_pixel *
+                              (height-bbox_int[1]-bbox_int[3])/2)
             z_deviation = int(predict_distance)
             cv2.putText(image, 'x - {:d} cm'.format(x_deviation), (bbox_int[2], bbox_int[1]+0),
-                        cv2.FONT_HERSHEY_SIMPLEX, font_scale*height, (147,20,255), 2)
+                        cv2.FONT_HERSHEY_SIMPLEX, font_scale*height, (147, 20, 255), 2)
             cv2.putText(image, 'y - {:d} cm'.format(y_deviation), (bbox_int[2], bbox_int[1]+60),
-                        cv2.FONT_HERSHEY_SIMPLEX, font_scale*height, (147,20,255), 2)
+                        cv2.FONT_HERSHEY_SIMPLEX, font_scale*height, (147, 20, 255), 2)
             cv2.putText(image, 'z - {:d} cm'.format(z_deviation), (bbox_int[2], bbox_int[1]+120),
-                        cv2.FONT_HERSHEY_SIMPLEX, font_scale*height, (147,20,255), 2)
+                        cv2.FONT_HERSHEY_SIMPLEX, font_scale*height, (147, 20, 255), 2)
 
             if i == ind_with_max_score:
-                pass
-                # Send x, y, z
+                x, y, z = str(x_deviation), str(y_deviation), str(z_deviation)
+
+        deviation = ' '.join([x, y, z])
+        socket_.conn.send(bytes(deviation, encoding='utf-8'))
 
         cv2.rectangle(image, left_top, right_bottom, bbox_color, thickness=1)
-
     return image
 
 
@@ -160,30 +165,32 @@ def run_detector_on_video(predict_model=None, poly=None):
 
 def run_detector_on_webcam(predict_model=None, poly=None):
     args = parse_args()
-    model = init_detector(
-        args.config, args.checkpoint, device=torch.device('cuda:0'))
+    model = init_detector(args.config, args.checkpoint,
+                          device=torch.device('cuda:0'))
 
-    webcam_recevier = Tcp_Receiver('192.168.8.142', 8020, 16)
-    for frame in webcam_recevier:
-        results = inference_detector(model, frame)
-        show_result(frame, results, model.CLASSES, score_thr=0.8,
-                    out_file=None, save_bbox=args.save_bbox, predict_model=predict_model, poly=poly)  # Default: score_thr=0.8
+    receiver = Receiver(0)
+    for image in receiver:
+        results = inference_detector(model, image)
+        image = simple_visualization_and_sender(
+            image, results, model.CLASSES, model=predict_model, poly=poly)
+        cv2.imshow('SERVER', image)
+        cv2.waitKey(1)
     cv2.destroyAllWindows()
 
 
 def run_detector_on_tcp_webcam(predict_model=None, poly=None):
     args = parse_args()
-    model = init_detector(
-        args.config, args.checkpoint, device=torch.device('cuda:0'))
+    model = init_detector(args.config, args.checkpoint,
+                          device=torch.device('cuda:0'))
 
-    cap = cv2.VideoCapture(0)
-    ret, frame = cap.read()
-    while ret:
-        results = inference_detector(model, frame)
-        show_result(frame, results, model.CLASSES, score_thr=0.8,
-                    out_file=None, save_bbox=args.save_bbox, predict_model=predict_model, poly=poly)  # Default: score_thr=0.8
-        ret, frame = cap.read()
-    cap.release()
+    # webcam_recevier = Tcp_Receiver('192.168.8.142', 8020, 16)
+    webcam_recevier = Tcp_Receiver('192.168.31.101', 8020, 16)
+    for image in webcam_recevier:
+        results = inference_detector(model, image)
+        image = simple_visualization_and_sender(
+            image, results, model.CLASSES, model=predict_model, poly=poly, socket_=webcam_recevier)
+        cv2.imshow('SERVER', image)
+        cv2.waitKey(1)
     cv2.destroyAllWindows()
 
 
@@ -202,4 +209,6 @@ if __name__ == '__main__':
         model.fit(X, Y)
 
     # run_detector_on_dataset(predict_model=model, poly=poly)
-    run_detector_on_video(predict_model=model, poly=poly)
+    # run_detector_on_video(predict_model=model, poly=poly)
+    # run_detector_on_webcam(predict_model=model, poly=poly)
+    run_detector_on_tcp_webcam(predict_model=model, poly=poly)
