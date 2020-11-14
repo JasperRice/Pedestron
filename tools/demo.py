@@ -208,12 +208,7 @@ if __name__ == '__main__':
         Y = np.array(list(map(float, [line.split()[1] for line in lines])))
         model.fit(X, Y)
 
-<<<<<<< HEAD
     # run_detector_on_dataset(predict_model=model, poly=poly)
     # run_detector_on_video(predict_model=model, poly=poly)
     # run_detector_on_webcam(predict_model=model, poly=poly)
     run_detector_on_tcp_webcam(predict_model=model, poly=poly)
-=======
-    run_detector_on_dataset(predict_model=model, poly=poly)
-    # run_detector_on_video(predict_model=model, poly=poly)
->>>>>>> 4246f9be853a5a41240fa27435a37598cfd79b1e
