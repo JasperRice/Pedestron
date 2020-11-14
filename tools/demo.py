@@ -16,20 +16,21 @@ from mmdet.apis import inference_detector, init_detector, show_result
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures
 
-from webcam_wrapper import Tcp_Receiver
+from webcam_wrapper import Receiver, Tcp_Receiver
 
 
 def parse_args():
     parser = argparse.ArgumentParser(description='MMDet test detector')
-    parser.add_argument('mode', choices=['image', 'video', 'webcam'])
     parser.add_argument('config', help='test config file path')
     parser.add_argument('checkpoint', help='checkpoint file')
-    parser.add_argument('input_img_dir', type=str,
+    parser.add_argument('--input_img_dir', type=str,
                         help='the dir of input images')
-    parser.add_argument('output_dir', type=str,
+    parser.add_argument('--output_dir', type=str,
                         help='the dir for result images')
     parser.add_argument('--video_path', type=str,
                         help='the path for input video')
+    parser.add_argument('--image_type', type=str, default='jpg')
+    parser.add_argument('--save_bbox', type=bool, default=False)
     parser.add_argument(
         '--launcher',
         choices=['none', 'pytorch', 'slurm', 'mpi'],
@@ -38,10 +39,69 @@ def parse_args():
     parser.add_argument('--local_rank', type=int, default=0)
     parser.add_argument('--mean_teacher', action='store_true',
                         help='test the mean teacher pth')
-    parser.add_argument('--image_type', type=str, default='jpg')
-    parser.add_argument('--save_bbox', type=bool, default=False)
     args = parser.parse_args()
     return args
+
+
+def simple_visualization(image, results, class_names, score_thr=0.9, model=None, poly=None, real_human_height=180, font_scale=7e-4):
+    assert isinstance(class_names, (tuple, list))
+    
+    if isinstance(results, tuple):
+        bbox_result, segm_result = results
+    else:
+        bbox_result, segm_result = results, None
+    segm_result = None
+    bboxes = np.vstack(bbox_result)
+
+    labels = [
+        np.full(bbox.shape[0], i, dtype=np.int32)
+        for i, bbox in enumerate(bbox_result)
+    ]
+    labels = np.concatenate(labels)
+
+    if score_thr > 0:
+        assert bboxes.shape[1] == 5
+        scores = bboxes[:, -1]
+        inds = scores > score_thr
+        bboxes = bboxes[inds, :]
+        labels = labels[inds]
+    ind_with_max_score = scores.index(max(scores))
+
+    bbox_color = (0, 255, 0)
+
+    for i, (bbox, label) in enumerate(zip(bboxes, labels)):
+        height, width, _ = image.shape
+
+        bbox_int = bbox.astype(np.int32)
+        left_top = (bbox_int[0], bbox_int[1])
+        right_bottom = (bbox_int[2], bbox_int[3])
+
+        if model != None:
+            human_height = max(
+                bbox_int[2] - bbox_int[0], bbox_int[3] - bbox_int[1])
+            real_distance_pixel = real_human_height / human_height
+            inverse_ratio = np.array(height / human_height).reshape(1, -1)
+            if poly != None:
+                inverse_ratio = poly.fit_transform(inverse_ratio)
+            predict_distance = model.predict(inverse_ratio)[0]
+
+            x_deviation = int(real_distance_pixel*(width-bbox_int[0]-bbox_int[2])/2)
+            y_deviation = int(real_distance_pixel*(height-bbox_int[1]-bbox_int[3])/2)
+            z_deviation = int(predict_distance)
+            cv2.putText(image, 'x - {:d} cm'.format(x_deviation), (bbox_int[2], bbox_int[1]+0),
+                        cv2.FONT_HERSHEY_SIMPLEX, font_scale*height, (147,20,255), 2)
+            cv2.putText(image, 'y - {:d} cm'.format(y_deviation), (bbox_int[2], bbox_int[1]+60),
+                        cv2.FONT_HERSHEY_SIMPLEX, font_scale*height, (147,20,255), 2)
+            cv2.putText(image, 'z - {:d} cm'.format(z_deviation), (bbox_int[2], bbox_int[1]+120),
+                        cv2.FONT_HERSHEY_SIMPLEX, font_scale*height, (147,20,255), 2)
+
+            if i == ind_with_max_score:
+                pass
+                # Send x, y, z
+
+        cv2.rectangle(image, left_top, right_bottom, bbox_color, thickness=1)
+
+    return image
 
 
 def mock_detector(model, image_name, output_dir, save_bbox=False, predict_model=None, poly=None):
