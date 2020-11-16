@@ -1,7 +1,7 @@
 # Usage: sh shell/demo.sh
 CUDA_VISIBLE_DEVICES=7 \
     python tools/demo.py \
-    configs/faster_rcnn_r50_fpn_1x.py \
+    configs/fp16/faster_rcnn_r50_fpn_fp16_1x.py \
     /data/sifan/model-zoo/pedestron/faster_rcnn_r50_fpn_1x_20181010-3d1b3351.pth \
     --input_img_dir /data/sifan/images/original/follow/webcam/ \
     --output_dir /data/sifan/images/results/follow/webcam/ \

@@ -1,5 +1,5 @@
 # Usage: sh shell/demo.sh
-CUDA_VISIBLE_DEVICES=6 \
+CUDA_VISIBLE_DEVICES=7 \
     python tools/demo.py \
     configs/pascal_voc/ssd300_voc.py \
     /data/sifan/model-zoo/pedestron/ssd300_voc_vgg16_caffe_240e_20190501-7160d09a.pth \
