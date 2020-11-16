@@ -13,9 +13,13 @@ class Receiver(object):
             self.file_name = int(file_name)
         except ValueError:
             pass
+        self.cap = cv.VideoCapture(self.file_name)
+
+    def set_resolution(self, width, height):
+        self.cap.set(3, width)
+        self.cap.set(4, height)
 
     def __iter__(self):
-        self.cap = cv.VideoCapture(self.file_name)
         if not self.cap.isOpened():
             raise IOError('Video {} cannot be opened'.format(self.file_name))
         return self
