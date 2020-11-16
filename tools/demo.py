@@ -45,7 +45,7 @@ def parse_args():
     return args
 
 
-def simple_visualization_and_sender(image, results, class_names, score_thr=0.9, model=None, poly=None, real_human_height=180, font_scale=7e-4, socket_=None):
+def simple_visualization_and_sender(image, results, class_names, score_thr=0.9, model=None, poly=None, real_human_height=180, font_scale=1.5e-3, font_gap=40, box_thickness=2, socket_=None):
     assert isinstance(class_names, (tuple, list))
 
     if isinstance(results, tuple):
@@ -97,17 +97,17 @@ def simple_visualization_and_sender(image, results, class_names, score_thr=0.9, 
             y_deviation = int(real_distance_pixel *
                               (height-bbox_int[1]-bbox_int[3])/2)
             z_deviation = int(predict_distance)
-            cv2.putText(image, 'x - {:d} cm'.format(x_deviation), (bbox_int[2], bbox_int[1]+0),
+            cv2.putText(image, 'x - {:d} cm'.format(x_deviation), (bbox_int[2], bbox_int[1]),
                         cv2.FONT_HERSHEY_SIMPLEX, font_scale*height, (147, 20, 255), 2)
-            cv2.putText(image, 'y - {:d} cm'.format(y_deviation), (bbox_int[2], bbox_int[1]+60),
+            cv2.putText(image, 'y - {:d} cm'.format(y_deviation), (bbox_int[2], bbox_int[1]+font_gap),
                         cv2.FONT_HERSHEY_SIMPLEX, font_scale*height, (147, 20, 255), 2)
-            cv2.putText(image, 'z - {:d} cm'.format(z_deviation), (bbox_int[2], bbox_int[1]+120),
+            cv2.putText(image, 'z - {:d} cm'.format(z_deviation), (bbox_int[2], bbox_int[1]+2*font_gap),
                         cv2.FONT_HERSHEY_SIMPLEX, font_scale*height, (147, 20, 255), 2)
 
             if label == label_with_max_score:
                 x, y, z = str(x_deviation), str(y_deviation), str(z_deviation)
 
-        cv2.rectangle(image, left_top, right_bottom, bbox_color, thickness=1)
+        cv2.rectangle(image, left_top, right_bottom, bbox_color, thickness=box_thickness)
 
     deviation = '|'.join([x, y, z])
     try:
@@ -170,17 +170,21 @@ def run_detector_on_video(predict_model=None, poly=None):
     cv2.destroyAllWindows()
 
 
-def run_detector_on_webcam(predict_model=None, poly=None):
+def run_detector_on_webcam(predict_model=None, poly=None, threshold=0.95, webcam_index=0):
     args = parse_args()
     model = init_detector(args.config, args.checkpoint,
                           device=torch.device('cuda:0'))
+    cv2.namedWindow("Human_Detector")
+    cv2.resizeWindow("Human_Detector", 1920//4, 1080//4)
+    cv2.moveWindow("Human_Detector", -100, -100)
 
-    receiver = Receiver(0)
+    receiver = Receiver(webcam_index)
     for image in receiver:
         results = inference_detector(model, image)
         image = simple_visualization_and_sender(
-            image, results, model.CLASSES, model=predict_model, poly=poly)
-        cv2.imshow('SERVER', image)
+            image, results, model.CLASSES, model=predict_model, poly=poly, score_thr=threshold)
+        # cv2.resize(image, (1920//3, 1080//3))
+        cv2.imshow('Human_Detector', image)
         cv2.waitKey(1)
     cv2.destroyAllWindows()
 
@@ -217,5 +221,6 @@ if __name__ == '__main__':
 
     # run_detector_on_dataset(predict_model=model, poly=poly)
     # run_detector_on_video(predict_model=model, poly=poly)
-    # run_detector_on_webcam(predict_model=model, poly=poly)
-    run_detector_on_tcp_webcam(predict_model=model, poly=poly)
+    run_detector_on_webcam(predict_model=model, poly=poly, threshold=0.99, webcam_index=0)
+
+    # run_detector_on_tcp_webcam(predict_model=model, poly=poly)
