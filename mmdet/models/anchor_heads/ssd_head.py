@@ -84,8 +84,11 @@ class SSDHead(AnchorHead):
                 base_size, scales, ratios, scale_major=False, ctr=ctr)
             indices = list(range(len(ratios)))
             indices.insert(1, len(indices))
+            # [TEST]
+            # anchor_generator.base_anchors = torch.index_select(
+            #     anchor_generator.base_anchors, 0, torch.LongTensor(indices))
             anchor_generator.base_anchors = torch.index_select(
-                anchor_generator.base_anchors, 0, torch.LongTensor(indices))
+                anchor_generator.base_anchors, 0, torch.LongTensor(indices).cuda()) # .cuda()
             self.anchor_generators.append(anchor_generator)
 
         self.target_means = target_means

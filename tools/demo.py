@@ -20,6 +20,9 @@ from sklearn.preprocessing import PolynomialFeatures
 
 from webcam_wrapper import Receiver, Tcp_Receiver
 
+# [TEST]
+from apex import amp
+torch.set_default_tensor_type('torch.cuda.HalfTensor')
 
 def parse_args():
     parser = argparse.ArgumentParser(description='MMDet test detector')
@@ -146,6 +149,8 @@ def run_detector_on_dataset(predict_model=None, poly=None):
 
     model = init_detector(
         args.config, args.checkpoint, device=torch.device('cuda:0'))
+    # [TEST]
+    model.half()
 
     prog_bar = mmcv.ProgressBar(len(eval_imgs))
     for im in eval_imgs:
@@ -215,7 +220,7 @@ if __name__ == '__main__':
         Y = np.array(list(map(float, [line.split()[1] for line in lines])))
         model.fit(X, Y)
 
-    # run_detector_on_dataset(predict_model=model, poly=poly)
+    run_detector_on_dataset(predict_model=model, poly=poly)
     # run_detector_on_video(predict_model=model, poly=poly)
     # run_detector_on_webcam(predict_model=model, poly=poly)
-    run_detector_on_tcp_webcam(predict_model=model, poly=poly)
+    # run_detector_on_tcp_webcam(predict_model=model, poly=poly)

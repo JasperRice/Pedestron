@@ -73,7 +73,11 @@ def _prepare_data(img, img_transform, cfg, device):
         img,
         scale=cfg.data.test.img_scale,
         keep_ratio=cfg.data.test.get('resize_keep_ratio', True))
-    img = to_tensor(img).to(device).unsqueeze(0)
+
+    # [TEST]
+    # img = to_tensor(img).to(device).unsqueeze(0)
+    img = to_tensor(img).to(device).unsqueeze(0).half() # .half()
+    
     img_meta = [
         dict(
             ori_shape=ori_shape,
