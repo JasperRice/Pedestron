@@ -247,4 +247,4 @@ if __name__ == '__main__':
     # run_detector_on_dataset(predict_model=model, poly=poly)
     # run_detector_on_video(predict_model=model, poly=poly)
     # run_detector_on_webcam(predict_model=model, poly=poly, threshold=0.99, webcam_index=2)
-    run_detector_on_tcp_webcam(predict_model=model, poly=poly, threshold=0.95)
+    run_detector_on_tcp_webcam(predict_model=model, poly=poly, threshold=0.90)
