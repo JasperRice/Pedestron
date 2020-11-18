@@ -173,7 +173,7 @@ def run_detector_on_video(predict_model=None, poly=None):
     cv2.destroyAllWindows()
 
 
-def run_detector_on_webcam(predict_model=None, poly=None, threshold=0.95, webcam_index=0):
+def run_detector_on_webcam(predict_model=None, poly=None, threshold=0.95, webcam_index=0, crop=0):
     args = parse_args()
     model = init_detector(args.config, args.checkpoint,
                           device=torch.device('cuda:0'))
@@ -188,6 +188,10 @@ def run_detector_on_webcam(predict_model=None, poly=None, threshold=0.95, webcam
     old_flag = False
     count = 0
     for image in receiver:
+        if crop > 0:
+            _, width, _ = image.shape
+            d_width = (1-crop)*width//2
+            image = image[:, int(width/2-d_width):int(width/2+d_width)]
         results = inference_detector(model, image)
         image = simple_visualization_and_sender(
             image, results, model.CLASSES, model=predict_model, poly=poly, score_thr=threshold)
@@ -212,7 +216,7 @@ def run_detector_on_webcam(predict_model=None, poly=None, threshold=0.95, webcam
     cv2.destroyAllWindows()
 
 
-def run_detector_on_tcp_webcam(predict_model=None, poly=None, threshold=0.99):
+def run_detector_on_tcp_webcam(predict_model=None, poly=None, threshold=0.99, crop=0):
     args = parse_args()
     model = init_detector(args.config, args.checkpoint,
                           device=torch.device('cuda:0'))
@@ -220,6 +224,11 @@ def run_detector_on_tcp_webcam(predict_model=None, poly=None, threshold=0.99):
     # webcam_recevier = Tcp_Receiver('192.168.8.142', 8020, 16)
     webcam_recevier = Tcp_Receiver('192.168.31.101', 8020, 16)
     for image in webcam_recevier:
+        if crop > 0:
+            _, width, _ = image.shape
+            d_width = (1-crop)*width//2
+            image = image[:, int(width/2-d_width):int(width/2+d_width)]
+
         results = inference_detector(model, image)
         image = simple_visualization_and_sender(
             image, results, model.CLASSES, model=predict_model, poly=poly, socket_=webcam_recevier, score_thr=threshold)
@@ -247,5 +256,5 @@ if __name__ == '__main__':
 
     # run_detector_on_dataset(predict_model=model, poly=poly)
     # run_detector_on_video(predict_model=model, poly=poly)
-    run_detector_on_webcam(predict_model=model, poly=poly, threshold=0.99, webcam_index=0)
-    # run_detector_on_tcp_webcam(predict_model=model, poly=poly, threshold=0.95)
+    # run_detector_on_webcam(predict_model=model, poly=poly, threshold=0.85, webcam_index=0, crop=1/3)
+    run_detector_on_tcp_webcam(predict_model=model, poly=poly, threshold=0.85, crop=1/3)
