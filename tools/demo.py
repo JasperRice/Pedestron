@@ -115,7 +115,8 @@ def simple_visualization_and_sender(image, results, class_names, score_thr=0.9, 
     try:
         socket_.conn.send(bytes(deviation, encoding='utf-8'))
     except:
-        print("Failed to send the position.")
+        # print("Failed to send the position.")
+        pass
 
     return image
 
@@ -246,5 +247,5 @@ if __name__ == '__main__':
 
     # run_detector_on_dataset(predict_model=model, poly=poly)
     # run_detector_on_video(predict_model=model, poly=poly)
-    # run_detector_on_webcam(predict_model=model, poly=poly, threshold=0.99, webcam_index=2)
-    run_detector_on_tcp_webcam(predict_model=model, poly=poly, threshold=0.95)
+    run_detector_on_webcam(predict_model=model, poly=poly, threshold=0.99, webcam_index=0)
+    # run_detector_on_tcp_webcam(predict_model=model, poly=poly, threshold=0.95)
