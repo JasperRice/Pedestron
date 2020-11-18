@@ -76,7 +76,7 @@ def simple_visualization_and_sender(image, results, class_names, score_thr=0.9, 
     
     bbox_color = (0, 255, 0)
 
-    x = y = z = ""
+    x_meter = y_meter = z_meter = ""
 
     for i, (bbox, label) in enumerate(zip(bboxes, labels)):
         height, width, _ = image.shape
@@ -107,11 +107,11 @@ def simple_visualization_and_sender(image, results, class_names, score_thr=0.9, 
                         cv2.FONT_HERSHEY_SIMPLEX, font_scale*height, (147, 20, 255), 2)
 
             if label == label_with_max_score:
-                x, y, z = str(x_deviation/100), str(y_deviation/100), str(z_deviation/100) # x, y, z in meter
+                x_meter, y_meter, z_meter = str(x_deviation/100), str(y_deviation/100), str(z_deviation/100) # x, y, z in meter
 
         cv2.rectangle(image, left_top, right_bottom, bbox_color, thickness=box_thickness)
 
-    deviation = '|'.join([x, y, z])
+    deviation = '|'.join([x_meter, y_meter, z_meter])
     try:
         socket_.conn.send(bytes(deviation, encoding='utf-8'))
     except:
@@ -223,7 +223,10 @@ def run_detector_on_tcp_webcam(predict_model=None, poly=None, threshold=0.99):
         image = simple_visualization_and_sender(
             image, results, model.CLASSES, model=predict_model, poly=poly, socket_=webcam_recevier, score_thr=threshold)
         cv2.imshow('SERVER', image)
-        cv2.waitKey(1)
+        key = cv2.waitKey(1)
+        if key == ord('q'):
+            print("Quit the server.")
+            break
     cv2.destroyAllWindows()
 
 
@@ -241,7 +244,7 @@ if __name__ == '__main__':
         Y = np.array(list(map(float, [line.split()[1] for line in lines])))
         model.fit(X, Y)
 
-    run_detector_on_dataset(predict_model=model, poly=poly)
+    # run_detector_on_dataset(predict_model=model, poly=poly)
     # run_detector_on_video(predict_model=model, poly=poly)
     # run_detector_on_webcam(predict_model=model, poly=poly, threshold=0.99, webcam_index=2)
-    run_detector_on_tcp_webcam(predict_model=model, poly=poly, threshold=0.85)
+    run_detector_on_tcp_webcam(predict_model=model, poly=poly, threshold=0.95)
