@@ -7,7 +7,7 @@ from cv2 import cv2 as cv
 
 
 class Receiver(object):
-    def __init__(self, file_name):
+    def __init__(self, file_name, flip=False):
         self.file_name = file_name
         try:
             self.file_name = int(file_name)
@@ -18,6 +18,15 @@ class Receiver(object):
     def set_resolution(self, width, height):
         self.cap.set(3, width)
         self.cap.set(4, height)
+
+    def set_1k(self):
+        self.set_resolution(1920, 1080)
+
+    def set_2k(self):
+        self.set_resolution(2592, 1944)
+
+    def set_4k(self):
+        self.set_resolution(2160, 2160)
 
     def __iter__(self):
         if not self.cap.isOpened():
@@ -53,7 +62,7 @@ class Tcp_Receiver(object):
 
     def __next__(self):
         if self.if_record_times:
-            self.start_time_length = Tcp_Receiver.recv_all(self.conn, 20)
+            self.start_time_length = Tcp_Receiver.recv_all(self.conn, self.count)
             self.start_time_string_data = float(self.conn.recv(
                 int(str(self.start_time_length, encoding="utf-8"))))
         

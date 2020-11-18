@@ -31,6 +31,8 @@ def parse_args():
                         help='the dir for result images')
     parser.add_argument('--video_path', type=str,
                         help='the path for input video')
+    parser.add_argument('--image_save_path', type=str, default='', 
+                        help='the path for output images')
     parser.add_argument('--image_type', type=str, default='jpg')
     parser.add_argument('--save_bbox', type=bool, default=False)
     parser.add_argument(
@@ -105,7 +107,7 @@ def simple_visualization_and_sender(image, results, class_names, score_thr=0.9, 
                         cv2.FONT_HERSHEY_SIMPLEX, font_scale*height, (147, 20, 255), 2)
 
             if label == label_with_max_score:
-                x, y, z = str(x_deviation), str(y_deviation), str(z_deviation)
+                x, y, z = str(x_deviation/100), str(y_deviation/100), str(z_deviation/100) # x, y, z in meter
 
         cv2.rectangle(image, left_top, right_bottom, bbox_color, thickness=box_thickness)
 
@@ -113,7 +115,7 @@ def simple_visualization_and_sender(image, results, class_names, score_thr=0.9, 
     try:
         socket_.conn.send(bytes(deviation, encoding='utf-8'))
     except:
-        pass
+        print("Failed to send the position.")
 
     return image
 
@@ -174,22 +176,42 @@ def run_detector_on_webcam(predict_model=None, poly=None, threshold=0.95, webcam
     args = parse_args()
     model = init_detector(args.config, args.checkpoint,
                           device=torch.device('cuda:0'))
-    cv2.namedWindow("Human_Detector")
-    cv2.resizeWindow("Human_Detector", 1920//4, 1080//4)
+    cv2.namedWindow("Human_Detector", 0)
+    cv2.resizeWindow("Human_Detector", 1920//2, 1080//2)
     cv2.moveWindow("Human_Detector", -100, -100)
-
-    receiver = Receiver(webcam_index)
+    try: receiver = Receiver(webcam_index)
+    except:
+        pass
+    
+    flag = False
+    old_flag = False
+    count = 0
     for image in receiver:
         results = inference_detector(model, image)
         image = simple_visualization_and_sender(
             image, results, model.CLASSES, model=predict_model, poly=poly, score_thr=threshold)
         # cv2.resize(image, (1920//3, 1080//3))
         cv2.imshow('Human_Detector', image)
-        cv2.waitKey(1)
+        key = cv2.waitKey(1)
+        
+        if key == ord('q'):
+            break
+        elif key == ord('s'):
+            old_flag = flag
+            flag = not flag
+            if flag: print("Start to record ...")
+            if old_flag and not flag: print("Stop recording.")
+
+        if args.image_save_path != '' and flag:
+            filename = '{}/{}.jpg'.format(args.image_save_path, str(count).zfill(5))
+            cv2.imwrite(filename, image)
+            print("Saving {} ...".format(filename))
+            count += 1
+
     cv2.destroyAllWindows()
 
 
-def run_detector_on_tcp_webcam(predict_model=None, poly=None):
+def run_detector_on_tcp_webcam(predict_model=None, poly=None, threshold=0.99):
     args = parse_args()
     model = init_detector(args.config, args.checkpoint,
                           device=torch.device('cuda:0'))
@@ -199,7 +221,7 @@ def run_detector_on_tcp_webcam(predict_model=None, poly=None):
     for image in webcam_recevier:
         results = inference_detector(model, image)
         image = simple_visualization_and_sender(
-            image, results, model.CLASSES, model=predict_model, poly=poly, socket_=webcam_recevier)
+            image, results, model.CLASSES, model=predict_model, poly=poly, socket_=webcam_recevier, score_thr=threshold)
         cv2.imshow('SERVER', image)
         cv2.waitKey(1)
     cv2.destroyAllWindows()
@@ -221,6 +243,5 @@ if __name__ == '__main__':
 
     # run_detector_on_dataset(predict_model=model, poly=poly)
     # run_detector_on_video(predict_model=model, poly=poly)
-    run_detector_on_webcam(predict_model=model, poly=poly, threshold=0.99, webcam_index=0)
-
-    # run_detector_on_tcp_webcam(predict_model=model, poly=poly)
+    # run_detector_on_webcam(predict_model=model, poly=poly, threshold=0.99, webcam_index=2)
+    run_detector_on_tcp_webcam(predict_model=model, poly=poly, threshold=0.85)
