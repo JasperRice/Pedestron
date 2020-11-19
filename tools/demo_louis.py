@@ -105,7 +105,8 @@ def simple_visualization_and_sender(image, results, class_names, score_thr=0.9, 
             cv2.putText(image, 'z - {:d} cm'.format(z_deviation), (bbox_int[2], bbox_int[1]+2*font_gap),
                         cv2.FONT_HERSHEY_SIMPLEX, font_scale*height, (147, 20, 255), 2)
 
-            if label == label_with_max_score:
+            current_bbox_area = (bbox_int[2] - bbox_int[0]) * (bbox_int[3] - bbox_int[1])
+            if max_bbox_area < current_bbox_area:
                 x_meter, y_meter, z_meter = str(x_deviation/100), str(y_deviation/100), str(z_deviation/100) # x, y, z in meter
 
         cv2.rectangle(image, left_top, right_bottom, bbox_color, thickness=box_thickness)
@@ -180,7 +181,8 @@ def run_detector_on_webcam(predict_model=None, poly=None, threshold=0.95, webcam
     cv2.resizeWindow("Human_Detector", 1920//2, 1080//2)
     cv2.moveWindow("Human_Detector", -100, -100)
     try: receiver = Receiver(webcam_index)
-    except: pass
+    except:
+        pass
     
     flag = False
     old_flag = False
@@ -192,13 +194,7 @@ def run_detector_on_webcam(predict_model=None, poly=None, threshold=0.95, webcam
             image = image[:, int(width/2-d_width):int(width/2+d_width)]
         results = inference_detector(model, image)
         image = simple_visualization_and_sender(
-            image,
-            results,
-            model.CLASSES,
-            model=predict_model,
-            poly=poly,
-            score_thr=threshold
-        )
+            image, results, model.CLASSES, model=predict_model, poly=poly, score_thr=threshold)
         # cv2.resize(image, (1920//3, 1080//3))
         cv2.imshow('Human_Detector', image)
         key = cv2.waitKey(1)
@@ -260,5 +256,5 @@ if __name__ == '__main__':
 
     # run_detector_on_dataset(predict_model=model, poly=poly)
     # run_detector_on_video(predict_model=model, poly=poly)
-    # run_detector_on_webcam(predict_model=model, poly=poly, threshold=0.85, webcam_index=0, crop=1/3)
-    run_detector_on_tcp_webcam(predict_model=model, poly=poly, threshold=0.85, crop=1/3)
+    run_detector_on_webcam(predict_model=model, poly=poly, threshold=0.85, webcam_index=0, crop=1/2)
+    # run_detector_on_tcp_webcam(predict_model=model, poly=poly, threshold=0.85, crop=1/2)
