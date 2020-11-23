@@ -29,11 +29,4 @@ def cal_iou(bboxes, target):
 
 
 if __name__ == "__main__":
-    bboxes = np.array([[1, 2, 3, 4],
-                       [2, 3, 4, 5]])
-    target = np.array([1,2,3,4])
-
-    ious = cal_iou(bboxes, target)
-    print("Calculated IoU: \t{}".format(ious))
-    print("Shape of the IoU: \t{}".format(ious.shape))
-    print("Data type of the IoU: \t{}".format(type(ious)))
+    pass
