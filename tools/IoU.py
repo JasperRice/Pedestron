@@ -26,7 +26,4 @@ def cal_iou(bboxes, target):
     area_iou = iou_w * iou_h
 
     return area_iou / (area_bboxes + area_target - area_iou)
-
-
-if __name__ == "__main__":
-    pass
+    

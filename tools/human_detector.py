@@ -5,6 +5,8 @@ from multiprocessing import Process, Queue
 
 sys.path.insert(0, os.path.join(
     os.path.dirname(os.path.abspath(__file__)), '../'))
+sys.path.insert(0, '/home/midea/Documents/Pedestron')
+sys.path.insert(0, '/home/midea/Documents/Pedestron/tools')
 
 import numpy as np
 from cv2 import cv2 as cv
@@ -101,3 +103,15 @@ class HumanDetector():
         for i, (bbox, score) in enumerate(zip(self.bboxes, self.scores)):
             pass
         return image
+
+
+if __name__ == "__main__":
+    from webcam_wrapper import Receiver
+    receiver = Receiver(0)
+    
+    config = 'configs/pascal_voc/ssd300_voc.py'
+    checkpoint = '/data/sifan/model-zoo/pedestron/ssd300_voc_vgg16_caffe_240e_20190501-7160d09a.pth'
+    detector = HumanDetector(config, checkpoint)
+
+    for image in receiver:
+        detector.update(image)

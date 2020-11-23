@@ -76,6 +76,10 @@ def simple_visualization_and_sender(image, results, class_names, score_thr=0.9, 
         label_with_max_score = original_labels[ind_with_max_score]
     
     bbox_color = (0, 255, 0)
+    max_bbox_color = (0, 0, 255)
+
+    max_bbox_area = 0
+    ind_with_max_bbox_area = None
     x_meter = y_meter = z_meter = ""
     for i, (bbox, label) in enumerate(zip(bboxes, labels)):
         height, width, _ = image.shape
@@ -108,8 +112,17 @@ def simple_visualization_and_sender(image, results, class_names, score_thr=0.9, 
             current_bbox_area = (bbox_int[2] - bbox_int[0]) * (bbox_int[3] - bbox_int[1])
             if max_bbox_area < current_bbox_area:
                 x_meter, y_meter, z_meter = str(x_deviation/100), str(y_deviation/100), str(z_deviation/100) # x, y, z in meter
+                ind_with_max_bbox_area = i
+                max_bbox_area = current_bbox_area
 
         cv2.rectangle(image, left_top, right_bottom, bbox_color, thickness=box_thickness)
+
+    # if ind_with_max_bbox_area is not None:
+    #     bbox_with_max_area = bbox[ind_with_max_bbox_area]
+    #     bbox_int = bbox_with_max_area.astype(np.int32)
+    #     left_top = (bbox_int[0], bbox_int[1])
+    #     right_bottom = (bbox_int[2], bbox_int[3])
+    #     cv2.rectangle(image, left_top, right_bottom, max_bbox_color, thickness=box_thickness)
 
     deviation = '|'.join([x_meter, y_meter, z_meter])
     try:
@@ -256,5 +269,5 @@ if __name__ == '__main__':
 
     # run_detector_on_dataset(predict_model=model, poly=poly)
     # run_detector_on_video(predict_model=model, poly=poly)
-    run_detector_on_webcam(predict_model=model, poly=poly, threshold=0.85, webcam_index=0, crop=1/2)
-    # run_detector_on_tcp_webcam(predict_model=model, poly=poly, threshold=0.85, crop=1/2)
+    # run_detector_on_webcam(predict_model=model, poly=poly, threshold=0.85, webcam_index=0, crop=1/2)
+    run_detector_on_tcp_webcam(predict_model=model, poly=poly, threshold=0.87, crop=1/4)
