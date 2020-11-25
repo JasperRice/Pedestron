@@ -137,19 +137,16 @@ def imshow_det_bboxes(img,
                     cv2.FONT_HERSHEY_SIMPLEX, font_scale*height, text_color, font_thickness_scale*1)  # Default: font_scale
 
         if save_bbox == True:
-            with open('/home/sifan/Documents/Pedestron/height-distance-webcam.txt', 'a+') as file:
-                human_height = max(
-                    bbox_int[2] - bbox_int[0], bbox_int[3] - bbox_int[1])
+            with open('height-distance-width-webcam.txt', 'a+') as file:
+                human_height = bbox_int[3] - bbox_int[1]
+                human_width = bbox_int[2] - bbox_int[0]
                 distance = int(((out_file.split('.')[-2]).split('/')[-1]).split('_')[0])
-                file.writelines('{}\t{}\n'.format(human_height, distance))
+                file.writelines('{}\t{}\t{}\n'.format(human_height, human_width, distance))
 
         if predict_model != None:
             human_height = max(
                 bbox_int[2] - bbox_int[0], bbox_int[3] - bbox_int[1])
             real_distance_pixel = real_human_height / human_height
-
-            # [TEST] Print the heigth of the image and the height of the bbox
-            # print(height, human_height)
 
             inverse_ratio = np.array(height / human_height).reshape(1, -1)
             if poly != None:
