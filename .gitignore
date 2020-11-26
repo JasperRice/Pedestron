@@ -116,3 +116,4 @@ data
 *.log.json
 work_dirs/
 result_demo/
+models/
